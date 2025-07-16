@@ -3,9 +3,6 @@ const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const morgan = require('morgan');
 const { connectDb } = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 // const authRouter = require('./auth/routes');
@@ -17,8 +14,7 @@ const authRoutes = require('./routes/authRoutes');
 // const cron = require('node-cron');
 // const { refreshLinkedInTokens } = require('./cron/refreshLinkedin');
 // const { errorHandler } = require('./middleware/error');
-const session = require('express-session');
-const passport = require('passport');
+
 // const { refreshExpiredOrgData } = require('./Utils/orgRefresh');
 // const { refreshExpiredPosts } = require('./Utils/postCacheRefresh');
 
@@ -34,38 +30,30 @@ const port = process.env.PORT || 8081;
 // ======================
 // Security Middlewares
 // ======================
-app.use(helmet());
+
+
+
+
+// ======================
+// Standard Middlewares
+// ======================
+app.use(express.json({ limit: '10kb' }));
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
+
+// app.use(session({
+//   secret: process.env.SECRET_STRING || 'vash_secret',
+//   resave: false,
+//   saveUninitialized: false,
+//   cookie: { secure: process.env.NODE_ENV === 'production' }
+// }));
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS.split(','),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE']
 }));
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 1000,
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use(limiter);
 
-// ======================
-// Standard Middlewares
-// ======================
-app.use(morgan('combined'));
-app.use(express.json({ limit: '10kb' }));
-app.use(cookieParser());
-app.use(express.urlencoded({ extended: true }));
-
-app.use(session({
-  secret: process.env.SECRET_STRING || 'vash_secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: process.env.NODE_ENV === 'production' }
-}));
-
-app.use(passport.initialize());
-app.use(passport.session());
 
 // ======================
 // Database Connection
